@@ -2,7 +2,7 @@ import { getDb } from "@/lib/mongodb";
 import SignOutButton from "./SignOutButton";
 import ExportControls from "./ExportControls";
 
-export const dynamic = "force-dynamic"; // always fetch fresh submissions
+export const dynamic = "force-dynamic"; 
 
 type Application = {
   _id: string;

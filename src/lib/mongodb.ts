@@ -8,17 +8,12 @@ if (!uri) {
   );
 }
 
-// Atlas `mongodb+srv://` URIs negotiate TLS by default. We set tls explicitly
-// here anyway so the requirement is visible in code, not just implied by the
-// connection string, and so it fails loudly if someone swaps in a non-TLS URI.
 const options = {
   tls: true,
-  // Keep a small pool — this app has low write volume (recruitment form).
   maxPoolSize: 10,
 };
 
 declare global {
-  // eslint-disable-next-line no-var
   var _mongoClientPromise: Promise<MongoClient> | undefined;
 }
 

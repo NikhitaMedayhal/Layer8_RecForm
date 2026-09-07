@@ -2,10 +2,6 @@ import { z } from "zod";
 
 export const DOMAINS = ["tech", "marketing", "design", "events"] as const;
 
-// Strips control characters and angle brackets defense-in-depth-style.
-// React already escapes text on render, so this isn't the only thing standing
-// between us and stored XSS, but it keeps obviously-malicious payloads out of
-// the DB and the synced spreadsheet (which other tools may render as HTML).
 function clean(input: string): string {
   return input
     .replace(/[\u0000-\u001F\u007F]/g, "")

@@ -1,15 +1,3 @@
-/**
- * Minimal in-memory rate limiter, keyed by IP.
- *
- * LIMITATION: this only works within a single running Node process. On
- * Vercel's serverless runtime each invocation *may* land on a different
- * instance, so this is a best-effort speed bump against casual spam/bots —
- * not a hard guarantee. If abuse becomes a real problem, swap this for
- * Upstash Redis (`@upstash/ratelimit` + `@upstash/redis`), which is free at
- * this scale and works across instances. The call site (src/app/api/apply/route.ts)
- * is written so that swap is a one-function change.
- */
-
 type Bucket = { count: number; resetAt: number };
 
 const buckets = new Map<string, Bucket>();

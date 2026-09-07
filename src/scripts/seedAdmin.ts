@@ -1,10 +1,3 @@
-/**
- * Usage:
- *   npm run seed:admin -- "Your Name" you@pes.edu "a-strong-password"
- *
- * Run once per admin (you'll run this 4 times total). Never commit real
- * passwords anywhere — type them directly in the terminal.
- */
 import bcrypt from "bcryptjs";
 import { MongoClient } from "mongodb";
 import "dotenv/config";

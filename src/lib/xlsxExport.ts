@@ -32,7 +32,6 @@ export function buildApplicationsWorkbook(submissions: ApplicationDoc[]): Buffer
 
   const worksheet = XLSX.utils.json_to_sheet(rows);
 
-  // Reasonable column widths so it's readable without manual resizing.
   worksheet["!cols"] = [
     { wch: 18 }, // Submitted At
     { wch: 20 }, // Full Name
