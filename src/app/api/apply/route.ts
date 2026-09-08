@@ -3,17 +3,12 @@ import { turso } from "@/lib/turso";
 import { applicationSchema } from "@/lib/validation";
 import { isRateLimited } from "@/lib/rateLimit";
 import { appendToSheet } from "@/lib/googleSheets";
+import { getClientIp } from "@/lib/getClientIp";
 
 export const runtime = "nodejs";
 
-function getClientIp(req: NextRequest): string {
-  const forwarded = req.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0].trim();
-  return req.headers.get("x-real-ip") || "unknown";
-}
-
 export async function POST(req: NextRequest) {
-  const ip = getClientIp(req);
+  const ip = getClientIp(req.headers);
 
   if (isRateLimited(ip)) {
     return NextResponse.json(

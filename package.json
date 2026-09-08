@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "seed:admin": "tsx src/scripts/seedAdmin.ts",
-    "db:migrate": "tsx src/scripts/migrate.ts"
+    "db:migrate": "tsx src/scripts/migrate.ts",
+    "remove:admin": "tsx src/scripts/removeAdmin.ts"
   },
   "dependencies": {
     "next": "14.2.35",

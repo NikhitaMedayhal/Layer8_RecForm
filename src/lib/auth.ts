@@ -2,6 +2,27 @@ import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { turso } from "./turso";
+import { getClientIp } from "./getClientIp";
+import { isAuthLocked, recordAuthFailure, clearAuthFailures } from "./rateLimit";
+
+// Used to compare against when no admin matches the given email, so that
+// bcrypt.compare() always runs and takes roughly the same time whether or
+// not the account exists. Without this, "no such admin" returns instantly
+// while "wrong password" takes ~100ms+ (bcrypt is intentionally slow),
+// letting an attacker enumerate valid admin emails purely by timing.
+const DUMMY_HASH = bcrypt.hashSync("not-a-real-password-just-for-timing", 12);
+
+async function logAuditEvent(action: string, actorEmail: string | null, ip: string, detail?: string) {
+  try {
+    await turso.execute({
+      sql: `INSERT INTO audit_log (actorEmail, action, detail, ip) VALUES (?, ?, ?, ?)`,
+      args: [actorEmail, action, detail ?? null, ip],
+    });
+  } catch (err) {
+    // Never let audit logging break the actual auth flow.
+    console.error("[auth] failed to write audit log:", err);
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt", maxAge: 60 * 60 * 8 }, // 8 hour sessions
@@ -12,20 +33,40 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) return null;
 
         const email = credentials.email.trim().toLowerCase();
+        const ip = getClientIp(req?.headers);
+        const ipKey = `ip:${ip}`;
+        const emailKey = `email:${email}`;
+
+        // Locked out from too many recent failures — from this IP, or
+        // against this specific account. Don't even touch the database.
+        if (isAuthLocked(ipKey) || isAuthLocked(emailKey)) {
+          await logAuditEvent("login_locked", email, ip);
+          return null;
+        }
+
         const result = await turso.execute({
           sql: "SELECT id, name, email, passwordHash FROM admins WHERE email = ? LIMIT 1",
           args: [email],
         });
 
         const admin = result.rows[0];
-        if (!admin) return null;
+        const hashToCheck = admin ? String(admin.passwordHash) : DUMMY_HASH;
+        const valid = await bcrypt.compare(credentials.password, hashToCheck);
 
-        const valid = await bcrypt.compare(credentials.password, String(admin.passwordHash));
-        if (!valid) return null;
+        if (!admin || !valid) {
+          recordAuthFailure(ipKey);
+          recordAuthFailure(emailKey);
+          await logAuditEvent("login_failure", email, ip);
+          return null;
+        }
+
+        clearAuthFailures(ipKey);
+        clearAuthFailures(emailKey);
+        await logAuditEvent("login_success", email, ip);
 
         return { id: String(admin.id), email: String(admin.email), name: String(admin.name) };
       },
