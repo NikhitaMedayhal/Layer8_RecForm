@@ -1,7 +1,14 @@
 import bcrypt from "bcryptjs";
 import { createClient } from "@libsql/client";
-import dotenv from "dotenv";
-dotenv.config({ path: ".env.local" });
+import { config } from "dotenv";
+
+// Plain `dotenv/config` only loads a file literally named `.env`. Next.js
+// itself auto-loads `.env.local` (which is where this project keeps real
+// secrets, per .env.example), but standalone scripts run via `tsx` don't
+// get that for free — so load it explicitly here, mirroring Next's own
+// precedence: `.env` as optional defaults, `.env.local` overriding it.
+config({ path: ".env" });
+config({ path: ".env.local", override: true });
 
 async function main() {
   const [name, email, password] = process.argv.slice(2);

@@ -26,10 +26,26 @@ CREATE TABLE IF NOT EXISTS applications (
 );
 
 CREATE INDEX IF NOT EXISTS idx_applications_createdAt ON applications (createdAt DESC);
+
 CREATE INDEX IF NOT EXISTS idx_admins_email ON admins (email);
 
 -- Prevent the same person from submitting more than one application.
 -- Enforced at the DB level (belt-and-braces alongside the app-level check
 -- in /api/apply) so it holds even under concurrent requests.
 CREATE UNIQUE INDEX IF NOT EXISTS idx_applications_unique_email ON applications (email);
+
 CREATE UNIQUE INDEX IF NOT EXISTS idx_applications_unique_srn ON applications (srn);
+
+-- Audit trail for admin actions: logins (success + failure), exports, and
+-- deletes. Nothing here is exposed to the client -- it's read directly
+-- from Turso if you ever need to investigate.
+CREATE TABLE IF NOT EXISTS audit_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  actorEmail TEXT,               -- email attempted/used, even on failed logins
+  action TEXT NOT NULL,          -- 'login_success' | 'login_failure' | 'login_locked' | 'export' | 'clear'
+  detail TEXT,                   -- free-form context, e.g. deleted count/ids
+  ip TEXT,
+  createdAt TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_log_createdAt ON audit_log (createdAt DESC);
