@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import { createClient } from "@libsql/client";
-import "dotenv/config";
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
 
 async function main() {
   const [name, email, password] = process.argv.slice(2);
