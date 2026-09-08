@@ -2,7 +2,7 @@ type Bucket = { count: number; resetAt: number };
 
 const buckets = new Map<string, Bucket>();
 
-const WINDOW_MS = 60_000; // 1 minute
+const WINDOW_MS = 5_000 // 1 minute
 const MAX_REQUESTS = 5; // 5 submissions per IP per minute
 
 export function isRateLimited(ip: string): boolean {

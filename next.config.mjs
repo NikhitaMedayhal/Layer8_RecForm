@@ -25,6 +25,18 @@ const securityHeaders = [
       "connect-src 'self'",
     ].join("; "),
   },
+  // Only sent in production: tells browsers to always use HTTPS for this
+  // domain (skip the initial plaintext request entirely, not just redirect
+  // after the fact) for the next year, including subdomains. Forcing this
+  // in dev would break plain http://localhost.
+  ...(!isDev
+    ? [
+        {
+          key: "Strict-Transport-Security",
+          value: "max-age=31536000; includeSubDomains; preload",
+        },
+      ]
+    : []),
 ];
 
 const nextConfig = {

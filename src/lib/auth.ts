@@ -24,8 +24,33 @@ async function logAuditEvent(action: string, actorEmail: string | null, ip: stri
   }
 }
 
+// Only harden the cookie in production. The `__Host-` prefix requires the
+// `Secure` attribute, and browsers only send Secure cookies over HTTPS —
+// forcing this in dev would silently break login on plain http://localhost.
+const isProd = process.env.NODE_ENV === "production";
+const cookiePrefix = isProd ? "__Host-" : "";
+
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt", maxAge: 60 * 60 * 8 }, // 8 hour sessions
+  useSecureCookies: isProd,
+  cookies: {
+    sessionToken: {
+      name: `${cookiePrefix}next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        // No external OAuth provider here (Credentials only, submitted via
+        // an in-app form), so there's no legitimate top-level-redirect flow
+        // that needs the looser "lax" default — "strict" is safe and cuts
+        // off more CSRF surface than NextAuth's default.
+        sameSite: "strict",
+        path: "/",
+        secure: isProd,
+        // __Host- cookies are explicitly forbidden from setting Domain —
+        // omitting it here (rather than leaving it undefined-by-default)
+        // documents that this is intentional, not an oversight.
+      },
+    },
+  },
   providers: [
     CredentialsProvider({
       name: "Admin login",
