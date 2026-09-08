@@ -7,14 +7,15 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed:admin": "tsx src/scripts/seedAdmin.ts"
+    "seed:admin": "tsx src/scripts/seedAdmin.ts",
+    "db:migrate": "tsx src/scripts/migrate.ts"
   },
   "dependencies": {
     "next": "14.2.35",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "next-auth": "^4.24.7",
-    "mongodb": "^6.8.0",
+    "@libsql/client": "^0.14.0",
     "bcryptjs": "^2.4.3",
     "zod": "^3.23.8",
     "googleapis": "^178.0.0",

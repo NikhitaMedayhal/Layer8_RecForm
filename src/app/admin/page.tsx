@@ -1,11 +1,11 @@
-import { getDb } from "@/lib/mongodb";
+import { turso } from "@/lib/turso";
 import SignOutButton from "./SignOutButton";
 import ExportControls from "./ExportControls";
 
 export const dynamic = "force-dynamic"; 
 
 type Application = {
-  _id: string;
+  id: string;
   fullName: string;
   srn: string;
   branch: string;
@@ -19,12 +19,15 @@ type Application = {
 };
 
 export default async function AdminPage() {
-  const db = await getDb();
-  const submissions = await db
-    .collection("applications")
-    .find({}, { projection: { sourceIp: 0 } })
-    .sort({ createdAt: -1 })
-    .toArray();
+  const result = await turso.execute(
+    `SELECT id, fullName, srn, branch, year, email, phone, domains, experience, portfolioUrl, whyJoin, createdAt
+     FROM applications
+     ORDER BY createdAt DESC`
+  );
+  const submissions = result.rows.map((row) => ({
+    ...row,
+    domains: JSON.parse(String(row.domains || "[]")),
+  }));
 
   return (
     <main className="wrap" style={{ paddingBlock: "3rem" }}>
@@ -60,7 +63,7 @@ export default async function AdminPage() {
           </thead>
           <tbody>
             {submissions.map((s: any) => (
-              <tr key={s._id.toString()}>
+              <tr key={String(s.id)}>
                 <td>{new Date(s.createdAt).toLocaleString()}</td>
                 <td>{s.fullName}</td>
                 <td>{s.srn}</td>

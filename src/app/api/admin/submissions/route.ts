@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { getDb } from "@/lib/mongodb";
+import { turso } from "@/lib/turso";
 
 export const runtime = "nodejs";
 
@@ -11,12 +11,18 @@ export async function GET() {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
 
-  const db = await getDb();
-  const submissions = await db
-    .collection("applications")
-    .find({}, { projection: { sourceIp: 0 } }) // don't ship raw IPs to the client
-    .sort({ createdAt: -1 })
-    .toArray();
+  const result = await turso.execute(
+    `SELECT id, fullName, srn, branch, year, email, phone, domains, experience, portfolioUrl, whyJoin, createdAt
+     FROM applications
+     ORDER BY createdAt DESC`
+  );
+
+  // sourceIp is intentionally excluded from the SELECT above so it never
+  // ships to the client, matching the old Mongo projection.
+  const submissions = result.rows.map((row) => ({
+    ...row,
+    domains: JSON.parse(String(row.domains || "[]")),
+  }));
 
   return NextResponse.json({ ok: true, submissions });
 }

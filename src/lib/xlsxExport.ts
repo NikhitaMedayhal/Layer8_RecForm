@@ -1,7 +1,7 @@
 import * as XLSX from "xlsx";
 
 type ApplicationDoc = {
-  _id: unknown;
+  id: unknown;
   fullName: string;
   srn: string;
   branch: string;

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "@/lib/mongodb";
+import { turso } from "@/lib/turso";
 import { applicationSchema } from "@/lib/validation";
 import { isRateLimited } from "@/lib/rateLimit";
 import { appendToSheet } from "@/lib/googleSheets";
 
-export const runtime = "nodejs"; // needed for the mongodb driver + tls
+export const runtime = "nodejs";
 
 function getClientIp(req: NextRequest): string {
   const forwarded = req.headers.get("x-forwarded-for");
@@ -46,13 +46,30 @@ export async function POST(req: NextRequest) {
   }
 
   const { website, ...clean } = data;
-  const record = { ...clean, createdAt: new Date(), sourceIp: ip };
+  const createdAt = new Date();
 
   try {
-    const db = await getDb();
-    await db.collection("applications").insertOne(record);
+    await turso.execute({
+      sql: `INSERT INTO applications
+              (fullName, srn, branch, year, email, phone, domains, experience, portfolioUrl, whyJoin, sourceIp, createdAt)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        clean.fullName,
+        clean.srn,
+        clean.branch,
+        clean.year,
+        clean.email,
+        clean.phone,
+        JSON.stringify(clean.domains),
+        clean.experience || null,
+        clean.portfolioUrl || null,
+        clean.whyJoin,
+        ip,
+        createdAt.toISOString(),
+      ],
+    });
   } catch (err) {
-    console.error("[apply] Mongo insert failed:", err);
+    console.error("[apply] Turso insert failed:", err);
     return NextResponse.json(
       { ok: false, error: "Could not save your application. Please try again shortly." },
       { status: 500 }
@@ -62,7 +79,7 @@ export async function POST(req: NextRequest) {
   // Best-effort: the application is already safely stored, so a Sheets
   // hiccup shouldn't fail the whole request for the applicant.
   try {
-    await appendToSheet(record);
+    await appendToSheet({ ...clean, createdAt });
   } catch (err) {
     console.error("[apply] Sheets sync failed (submission was still saved):", err);
   }

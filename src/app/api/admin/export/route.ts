@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { getDb } from "@/lib/mongodb";
+import { turso } from "@/lib/turso";
 import { buildApplicationsWorkbook } from "@/lib/xlsxExport";
 
 export const runtime = "nodejs";
@@ -12,20 +12,29 @@ export async function GET() {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
 
-  const db = await getDb();
-  const submissions = await db
-    .collection("applications")
-    .find({}, { projection: { sourceIp: 0 } })
-    .sort({ createdAt: -1 })
-    .toArray();
+  const result = await turso.execute(
+    `SELECT id, fullName, srn, branch, year, email, phone, domains, experience, portfolioUrl, whyJoin, createdAt
+     FROM applications
+     ORDER BY createdAt DESC`
+  );
+
+  const submissions: Array<Record<string, unknown> & { id: unknown; domains: string[] }> =
+    result.rows.map((row) => {
+      const plain = row as unknown as Record<string, unknown>;
+      return {
+        ...plain,
+        id: plain.id,
+        domains: JSON.parse(String(plain.domains || "[]")),
+      };
+    });
 
   const buffer = buildApplicationsWorkbook(submissions as any);
 
-  // Send back exactly which _ids were included in this export, so the
+  // Send back exactly which ids were included in this export, so the
   // client can later ask to delete precisely these — not "everything in
-  // Mongo right now", which could include submissions that arrived after
-  // this export was generated.
-  const exportedIds = submissions.map((s) => s._id.toString());
+  // the database right now", which could include submissions that arrived
+  // after this export was generated.
+  const exportedIds = submissions.map((s) => String(s.id));
 
   const filename = `layer8-applications-${new Date().toISOString().slice(0, 10)}.xlsx`;
 

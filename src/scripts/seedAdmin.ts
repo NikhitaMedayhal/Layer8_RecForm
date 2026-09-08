@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { MongoClient } from "mongodb";
+import { createClient } from "@libsql/client";
 import "dotenv/config";
 
 async function main() {
@@ -14,24 +14,29 @@ async function main() {
     process.exit(1);
   }
 
-  const uri = process.env.MONGODB_URI;
-  if (!uri) throw new Error("MONGODB_URI not set");
+  const url = process.env.TURSO_DATABASE_URL;
+  const authToken = process.env.TURSO_AUTH_TOKEN;
+  if (!url) throw new Error("TURSO_DATABASE_URL not set");
 
-  const client = new MongoClient(uri, { tls: true });
-  await client.connect();
-  const db = client.db(process.env.MONGODB_DB_NAME || "layer8");
+  const client = createClient({ url, authToken });
 
   const passwordHash = await bcrypt.hash(password, 12);
   const emailLower = email.trim().toLowerCase();
 
-  await db.collection("admins").updateOne(
-    { email: emailLower },
-    { $set: { name, email: emailLower, passwordHash, updatedAt: new Date() } },
-    { upsert: true }
-  );
+  // Upsert: update the existing admin's name/password if the email already
+  // exists, otherwise insert a new row.
+  await client.execute({
+    sql: `INSERT INTO admins (name, email, passwordHash, updatedAt)
+          VALUES (?, ?, ?, datetime('now'))
+          ON CONFLICT(email) DO UPDATE SET
+            name = excluded.name,
+            passwordHash = excluded.passwordHash,
+            updatedAt = datetime('now')`,
+    args: [name, emailLower, passwordHash],
+  });
 
   console.log(`Admin upserted: ${emailLower}`);
-  await client.close();
+  client.close();
 }
 
 main().catch((err) => {

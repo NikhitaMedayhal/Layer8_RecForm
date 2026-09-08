@@ -55,7 +55,7 @@ export default function ExportControls() {
       setStage("done");
       router.refresh();
     } catch (err) {
-      setError("Could not delete the exported records. They're still safe in MongoDB.");
+      setError("Could not delete the exported records. They're still safe in the database.");
       setStage("error");
     }
   }
@@ -67,7 +67,7 @@ export default function ExportControls() {
       <p className="tag">export &amp; clean up</p>
       <p style={{ marginTop: "0.6rem", fontSize: "0.85rem" }}>
         Downloads every submission as an .xlsx file. Once you've confirmed the download looks
-        right, you can permanently delete exactly those records from MongoDB.
+        right, you can permanently delete exactly those records from the database.
       </p>
 
       <div style={{ marginTop: "1rem", display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
@@ -86,7 +86,7 @@ export default function ExportControls() {
         <div style={{ marginTop: "1.25rem", paddingTop: "1.25rem", borderTop: "1px solid var(--border)" }}>
           <p style={{ fontSize: "0.85rem", color: "var(--danger)" }}>
             This permanently deletes the {exportedIds.length} record{exportedIds.length === 1 ? "" : "s"} you
-            just downloaded from MongoDB. This can't be undone — make sure the .xlsx file actually
+            just downloaded from the database. This can't be undone — make sure the .xlsx file actually
             opened and looks correct first.
           </p>
           <div style={{ marginTop: "0.75rem", display: "flex", gap: "0.6rem", alignItems: "center", flexWrap: "wrap" }}>
@@ -112,7 +112,7 @@ export default function ExportControls() {
               disabled={confirmText.trim().toLowerCase() !== "delete" || isDeleting}
               onClick={handleDelete}
             >
-              {isDeleting ? "> deleting..." : "> delete_from_mongo"}
+              {isDeleting ? "> deleting..." : "> delete_from_db"}
             </button>
           </div>
         </div>
