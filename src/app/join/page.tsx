@@ -109,10 +109,16 @@ export default function JoinPage() {
             <span className="prompt">$</span> <span className="cursor">&nbsp;</span>
           </div>
         </div>
+        <a
+          href="https://layer8ecc.vercel.app"
+          className="btn btn-solid"
+          style={{ marginTop: "1.75rem", display: "inline-block", textAlign: "center" }}
+        >
+          &gt; back_to_home
+        </a>
       </main>
     );
   }
-
   return (
     <main className="wrap" style={{ paddingBlock: "4rem" }}>
       <div

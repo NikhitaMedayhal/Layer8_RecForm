@@ -27,3 +27,9 @@ CREATE TABLE IF NOT EXISTS applications (
 
 CREATE INDEX IF NOT EXISTS idx_applications_createdAt ON applications (createdAt DESC);
 CREATE INDEX IF NOT EXISTS idx_admins_email ON admins (email);
+
+-- Prevent the same person from submitting more than one application.
+-- Enforced at the DB level (belt-and-braces alongside the app-level check
+-- in /api/apply) so it holds even under concurrent requests.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_applications_unique_email ON applications (email);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_applications_unique_srn ON applications (srn);

@@ -48,6 +48,32 @@ export async function POST(req: NextRequest) {
   const { website, ...clean } = data;
   const createdAt = new Date();
 
+  // Block resubmissions up front (fast path, clear error message).
+  // The unique indexes on `email`/`srn` in schema.sql are the real
+  // enforcement — this check just avoids hitting that as a raw DB error
+  // in the common case.
+  try {
+    const existing = await turso.execute({
+      sql: `SELECT id FROM applications WHERE email = ? OR srn = ? LIMIT 1`,
+      args: [clean.email, clean.srn],
+    });
+    if (existing.rows.length > 0) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "An application with this email or SRN has already been submitted.",
+        },
+        { status: 409 }
+      );
+    }
+  } catch (err) {
+    console.error("[apply] Duplicate check failed:", err);
+    return NextResponse.json(
+      { ok: false, error: "Could not save your application. Please try again shortly." },
+      { status: 500 }
+    );
+  }
+
   try {
     await turso.execute({
       sql: `INSERT INTO applications
@@ -68,14 +94,25 @@ export async function POST(req: NextRequest) {
         createdAt.toISOString(),
       ],
     });
-  } catch (err) {
+  } catch (err: any) {
+    // Race condition: two identical submissions landed at nearly the same
+    // time and both passed the check above. The unique index catches it here.
+    const message = String(err?.message || "");
+    if (message.includes("UNIQUE constraint failed")) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "An application with this email or SRN has already been submitted.",
+        },
+        { status: 409 }
+      );
+    }
     console.error("[apply] Turso insert failed:", err);
     return NextResponse.json(
       { ok: false, error: "Could not save your application. Please try again shortly." },
       { status: 500 }
     );
   }
-
   // Best-effort: the application is already safely stored, so a Sheets
   // hiccup shouldn't fail the whole request for the applicant.
   try {
