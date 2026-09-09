@@ -31,10 +31,6 @@ export async function GET(req: NextRequest) {
 
   const buffer = buildApplicationsWorkbook(submissions as any);
 
-  // Send back exactly which ids were included in this export, so the
-  // client can later ask to delete precisely these — not "everything in
-  // the database right now", which could include submissions that arrived
-  // after this export was generated.
   const exportedIds = submissions.map((s) => String(s.id));
 
   const filename = `layer8-applications-${new Date().toISOString().slice(0, 10)}.xlsx`;

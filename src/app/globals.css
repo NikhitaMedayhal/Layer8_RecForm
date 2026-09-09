@@ -191,6 +191,16 @@ h1, h2, h3 { font-family: var(--font-display), var(--font-mono), sans-serif; fon
   white-space: pre-wrap; overflow-wrap: anywhere;
 }
 .term-body .prompt { color: var(--accent); }
+.term-cursor {
+  display: inline-block;
+  width: 0.55ch;
+  height: 1em;
+  vertical-align: text-bottom;
+  background: var(--accent);
+  animation: term-blink 1.05s steps(1) infinite;
+  margin-left: 1px;
+}
+@keyframes term-blink { 50% { opacity: 0; } }
 .term-body .muted { color: var(--fg-dim); }
 
 table.data { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
