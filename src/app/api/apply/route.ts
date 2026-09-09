@@ -71,13 +71,13 @@ export async function POST(req: NextRequest) {
 
   try {
     await turso.execute({
-      sql: `INSERT INTO applications
-              (fullName, srn, branch, year, email, phone, domains, experience, portfolioUrl, whyJoin,
-               techCyberExperience, techLanguage, techWhyDomain, techPriorExperience, techCtfParticipated,
-               techCtfOther, techCtfConfidence, techGithub, techLinkedin, techProject,
-               eventsWhyJoin, eventsPriorExperience, eventsPlanSteps, eventsOrientationIdeas, eventsExcites,
-               sourceIp, createdAt)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+sql: `INSERT INTO applications
+        (fullName, srn, branch, year, email, phone, domains, domainAnswers, experience, portfolioUrl, whyJoin,
+         techCyberExperience, techLanguage, techWhyDomain, techPriorExperience, techCtfParticipated,
+         techCtfOther, techCtfConfidence, techGithub, techLinkedin, techProject,
+         eventsWhyJoin, eventsPriorExperience, eventsPlanSteps, eventsOrientationIdeas, eventsExcites,
+         sourceIp, createdAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         clean.fullName,
         clean.srn,
@@ -86,6 +86,7 @@ export async function POST(req: NextRequest) {
         clean.email,
         clean.phone,
         JSON.stringify(clean.domains),
+        JSON.stringify(clean.domainAnswers),
         clean.experience || null,
         clean.portfolioUrl || null,
         clean.whyJoin,

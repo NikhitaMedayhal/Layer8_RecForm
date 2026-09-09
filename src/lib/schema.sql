@@ -17,7 +17,8 @@ CREATE TABLE IF NOT EXISTS applications (
   year TEXT NOT NULL,
   email TEXT NOT NULL,
   phone TEXT NOT NULL,
-  domains TEXT NOT NULL,          -- JSON-encoded array, e.g. ["tech","design"]
+  domains TEXT NOT NULL,          -- JSON-encoded array, max 2 domains
+  domainAnswers TEXT,             -- JSON-encoded domain-specific answers
   experience TEXT,
   portfolioUrl TEXT,
   whyJoin TEXT NOT NULL,

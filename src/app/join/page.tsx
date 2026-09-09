@@ -4,11 +4,133 @@ import { useState, useRef } from "react";
 import Terminal from "./Terminal";
 
 const DOMAINS = [
-  { id: "tech", label: "tech" },
   { id: "marketing", label: "marketing" },
+  { id: "media", label: "media" },
   { id: "design", label: "design" },
-  { id: "events", label: "events" },
-];
+] as const;
+
+const DOMAIN_QUESTIONS = {
+  marketing: [
+    {
+      id: "marketingWhy",
+      label: "Why do you want to join the Marketing team of Layer8?",
+      type: "textarea",
+      required: true,
+    },
+    {
+      id: "marketingExperience",
+      label:
+        "Do you have prior experience in marketing? If yes, explain briefly (no experience is also fine).",
+      type: "textarea",
+      required: true,
+    },
+    {
+      id: "marketingReach",
+      label: "How good is your reach across the college?",
+      type: "scale",
+      required: true,
+    },
+    {
+      id: "marketingCreative",
+      label:
+        "What’s the most creative or unconventional way you’ve promoted something in the past?",
+      type: "textarea",
+      required: true,
+    },
+    {
+      id: "marketingWhatsapp",
+      label:
+        "A few tech events have already happened in college, similarly draw up a WhatsApp blast for our Project Expo (include placeholder details).",
+      type: "textarea",
+      required: true,
+    },
+    {
+      id: "marketingInstagram",
+      label: "Give your Instagram handle",
+      type: "text",
+      required: true,
+    },
+    {
+      id: "marketingCtf",
+      label:
+        "Imagine Layer8 is hosting a CTF, but registrations are very low. What steps would you take in the next 48 hours to increase participation?",
+      type: "textarea",
+      required: true,
+    },
+  ],
+
+  media: [
+    {
+      id: "mediaWhy",
+      label: "Why do you want to join the Media team?",
+      type: "textarea",
+      required: true,
+    },
+    {
+      id: "mediaExperience",
+      label:
+        "Do you have prior experience in photography, videography, or content creation? If yes, explain briefly.",
+      type: "textarea",
+      required: true,
+    },
+    {
+      id: "mediaPortfolio",
+      label:
+        "If you are a video editor please upload your portfolio or link to some cool edits you have made.",
+      type: "text",
+      required: false,
+    },
+    {
+      id: "mediaIdeas",
+      label: "Pitch a few Instagram post/reel ideas for our club.",
+      type: "textarea",
+      required: true,
+    },
+    {
+      id: "mediaInstagram",
+      label: "Give your Instagram handle",
+      type: "text",
+      required: true,
+    },
+    {
+      id: "mediaTrends",
+      label:
+        "On a scale of 1–10, how good are you at memes and current trends?",
+      type: "scale",
+      required: true,
+    },
+    {
+      id: "mediaEngagement",
+      label:
+        "Imagine you’re covering one of our club’s events, but engagement on social media is low. What’s your plan to boost reach and engagement within 48 hours?",
+      type: "textarea",
+      required: true,
+    },
+  ],
+
+  design: [
+    {
+      id: "designWhy",
+      label: "Why do you want to join the Design team?",
+      type: "textarea",
+      required: true,
+    },
+    {
+      id: "designExperience",
+      label:
+        "Do you have prior experience in design? (Graphic design, UI/UX, poster making, video editing, etc.)",
+      type: "textarea",
+      required: true,
+    },
+    {
+      id: "designPortfolio",
+      label:
+        "Link to your design portfolio (if you upload a Google Drive link make sure you provide necessary permissions to view it)",
+      type: "text",
+      required: true,
+    },
+  ],
+} as const;
 
 const YEARS = ["1", "2", "3", "4"];
 
@@ -22,6 +144,7 @@ type FormState = {
   email: string;
   phone: string;
   domains: string[];
+  domainAnswers: Record<string, string>;
   experience: string;
   portfolioUrl: string;
   whyJoin: string;
@@ -53,6 +176,7 @@ const initialState: FormState = {
   email: "",
   phone: "",
   domains: [],
+  domainAnswers: {},
   experience: "",
   portfolioUrl: "",
   whyJoin: "",
@@ -89,20 +213,79 @@ export default function JoinPage() {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  const MAX_DOMAINS = 2;
+const MAX_DOMAINS = 2;
 
-  function toggleDomain(id: string) {
-    setForm((f) => {
-      if (f.domains.includes(id)) {
-        return { ...f, domains: f.domains.filter((d) => d !== id) };
-      }
-      if (f.domains.length >= MAX_DOMAINS) {
-        return f; // already at the cap — ignore the click
-      }
-      return { ...f, domains: [...f.domains, id] };
-    });
-  }
+function toggleDomain(id: string) {
+  setForm((f) => {
+    const alreadySelected = f.domains.includes(id);
 
+    if (alreadySelected) {
+      return {
+        ...f,
+        domains: f.domains.filter((d) => d !== id),
+      };
+    }
+
+    if (f.domains.length >= MAX_DOMAINS) {
+      return f;
+    }
+
+    return {
+      ...f,
+      domains: [...f.domains, id],
+    };
+  });
+
+  setErrors((e) => ({
+    ...e,
+    domains: "",
+  }));
+}
+
+function updateDomainAnswer(id: string, value: string) {
+  setForm((f) => ({
+    ...f,
+    domainAnswers: {
+      ...f.domainAnswers,
+      [id]: value,
+    },
+  }));
+}
+    // Deselect
+    if (alreadySelected) {
+      return {
+        ...f,
+        domains: f.domains.filter((d) => d !== id),
+      };
+    }
+
+    // Maximum 2 domains
+    if (f.domains.length >= 2) {
+      return f;
+    }
+
+    // Select
+    return {
+      ...f,
+      domains: [...f.domains, id],
+    };
+  });
+
+  setErrors((e) => ({
+    ...e,
+    domains: "",
+  }));
+}
+
+function updateDomainAnswer(id: string, value: string) {
+  setForm((f) => ({
+    ...f,
+    domainAnswers: {
+      ...f.domainAnswers,
+      [id]: value,
+    },
+  }));
+}
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErrors({});
@@ -287,7 +470,155 @@ export default function JoinPage() {
             })}
           </div>
           {errors.domains && <span className="error">{errors.domains}</span>}
+<div className={`field ${errors.domains ? "has-error" : ""}`}>
+  <label>Choose your domains</label>
+  <span className="hint">select up to 2 domains</span>
+
+  <div className="checkbox-grid">
+    {DOMAINS.map((d) => {
+      const selected = form.domains.includes(d.id);
+      const maxReached = form.domains.length >= 2 && !selected;
+
+      return (
+        <label
+          key={d.id}
+          className="chip-check"
+          style={{
+            opacity: maxReached ? 0.45 : 1,
+            cursor: maxReached ? "not-allowed" : "pointer",
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={selected}
+            disabled={maxReached}
+            onChange={() => toggleDomain(d.id)}
+          />
+          {d.label}
+        </label>
+      );
+    })}
+  </div>
+
+  {errors.domains && (
+    <span className="error">{errors.domains}</span>
+  )}
+</div>
+
+{form.domains.map((domain) => {
+  const questions =
+    DOMAIN_QUESTIONS[
+      domain as keyof typeof DOMAIN_QUESTIONS
+    ];
+
+  return (
+    <div
+      key={domain}
+      className="card"
+      style={{
+        marginBottom: "1.75rem",
+        borderColor: "var(--accent)",
+      }}
+    >
+      <p className="tag">
+        {domain} // domain_questions
+      </p>
+
+      <p
+        className="hint"
+        style={{
+          marginTop: "0.6rem",
+          marginBottom: "1.5rem",
+        }}
+      >
+        answer the questions below for the {domain} domain
+      </p>
+
+      {questions.map((question) => (
+        <div className="field" key={question.id}>
+          <label htmlFor={question.id}>
+            {question.label}
+            {question.required && " *"}
+          </label>
+
+          {question.type === "scale" ? (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "repeat(10, minmax(0, 1fr))",
+                gap: "0.4rem",
+                marginTop: "0.5rem",
+              }}
+            >
+              {Array.from(
+                { length: 10 },
+                (_, i) => String(i + 1)
+              ).map((number) => (
+                <label
+                  key={number}
+                  className="chip-check"
+                  style={{
+                    justifyContent: "center",
+                    padding: "0.7rem 0.2rem",
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name={question.id}
+                    value={number}
+                    checked={
+                      form.domainAnswers[question.id] ===
+                      number
+                    }
+                    onChange={(e) =>
+                      updateDomainAnswer(
+                        question.id,
+                        e.target.value
+                      )
+                    }
+                  />
+                  {number}
+                </label>
+              ))}
+            </div>
+          ) : question.type === "textarea" ? (
+            <textarea
+              id={question.id}
+              required={question.required}
+              maxLength={1500}
+              value={
+                form.domainAnswers[question.id] || ""
+              }
+              onChange={(e) =>
+                updateDomainAnswer(
+                  question.id,
+                  e.target.value
+                )
+              }
+            />
+          ) : (
+            <input
+              id={question.id}
+              type="text"
+              required={question.required}
+              maxLength={500}
+              value={
+                form.domainAnswers[question.id] || ""
+              }
+              onChange={(e) =>
+                updateDomainAnswer(
+                  question.id,
+                  e.target.value
+                )
+              }
+            />
+          )}
         </div>
+      ))}
+    </div>
+  );
+})}
 
         {form.domains.includes("tech") && (
           <div className="card" style={{ margin: "0 0 1.5rem", padding: "1.1rem 1.2rem" }}>

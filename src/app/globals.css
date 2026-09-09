@@ -183,6 +183,16 @@ h1, h2, h3 { font-family: var(--font-display), var(--font-mono), sans-serif; fon
 }
 .chip-check-disabled input { cursor: not-allowed; }
 
+.chip-check:has(input[type="checkbox"]:checked) {
+  border-color: var(--accent);
+  color: var(--fg);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.chip-check input[type="checkbox"] {
+  accent-color: var(--accent);
+}
+
 .term {
   background: color-mix(in srgb, var(--bg-2) 88%, black);
   border: 1px solid var(--border);
