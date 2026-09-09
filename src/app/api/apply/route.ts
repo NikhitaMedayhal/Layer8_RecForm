@@ -72,8 +72,12 @@ export async function POST(req: NextRequest) {
   try {
     await turso.execute({
       sql: `INSERT INTO applications
-              (fullName, srn, branch, year, email, phone, domains, experience, portfolioUrl, whyJoin, sourceIp, createdAt)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              (fullName, srn, branch, year, email, phone, domains, experience, portfolioUrl, whyJoin,
+               techCyberExperience, techLanguage, techWhyDomain, techPriorExperience, techCtfParticipated,
+               techCtfOther, techCtfConfidence, techGithub, techLinkedin, techProject,
+               eventsWhyJoin, eventsPriorExperience, eventsPlanSteps, eventsOrientationIdeas, eventsExcites,
+               sourceIp, createdAt)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         clean.fullName,
         clean.srn,
@@ -85,6 +89,21 @@ export async function POST(req: NextRequest) {
         clean.experience || null,
         clean.portfolioUrl || null,
         clean.whyJoin,
+        clean.techCyberExperience || null,
+        clean.techLanguage || null,
+        clean.techWhyDomain || null,
+        clean.techPriorExperience || null,
+        clean.techCtfParticipated || null,
+        clean.techCtfOther || null,
+        clean.techCtfConfidence || null,
+        clean.techGithub || null,
+        clean.techLinkedin || null,
+        clean.techProject || null,
+        clean.eventsWhyJoin || null,
+        clean.eventsPriorExperience || null,
+        clean.eventsPlanSteps || null,
+        clean.eventsOrientationIdeas || null,
+        clean.eventsExcites || null,
         ip,
         createdAt.toISOString(),
       ],

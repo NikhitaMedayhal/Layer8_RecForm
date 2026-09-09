@@ -38,11 +38,27 @@ export async function appendToSheet(app: ApplicationInput & { createdAt: Date })
     app.experience || "",
     app.portfolioUrl || "",
     app.whyJoin,
+    // Tech-domain-only questions — blank for applicants who didn't pick tech.
+    app.techCyberExperience || "",
+    app.techLanguage || "",
+    app.techWhyDomain || "",
+    app.techPriorExperience || "",
+    app.techCtfParticipated === "other" ? app.techCtfOther || "other" : app.techCtfParticipated || "",
+    app.techCtfConfidence || "",
+    app.techGithub || "",
+    app.techLinkedin || "",
+    app.techProject || "",
+    // Events-domain-only questions — blank for applicants who didn't pick events.
+    app.eventsWhyJoin || "",
+    app.eventsPriorExperience || "",
+    app.eventsPlanSteps || "",
+    app.eventsOrientationIdeas || "",
+    app.eventsExcites || "",
   ];
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: sheetId,
-    range: "Submissions!A:K",
+    range: "Submissions!A:Y",
     valueInputOption: "USER_ENTERED",
     insertDataOption: "INSERT_ROWS",
     requestBody: { values: [row] },

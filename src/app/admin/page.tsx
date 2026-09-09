@@ -15,12 +15,30 @@ type Application = {
   domains: string[];
   portfolioUrl?: string;
   whyJoin: string;
+  techCyberExperience?: string;
+  techLanguage?: string;
+  techWhyDomain?: string;
+  techPriorExperience?: string;
+  techCtfParticipated?: string;
+  techCtfOther?: string;
+  techCtfConfidence?: string;
+  techGithub?: string;
+  techLinkedin?: string;
+  techProject?: string;
+  eventsWhyJoin?: string;
+  eventsPriorExperience?: string;
+  eventsPlanSteps?: string;
+  eventsOrientationIdeas?: string;
+  eventsExcites?: string;
   createdAt: string;
 };
 
 export default async function AdminPage() {
   const result = await turso.execute(
-    `SELECT id, fullName, srn, branch, year, email, phone, domains, experience, portfolioUrl, whyJoin, createdAt
+    `SELECT id, fullName, srn, branch, year, email, phone, domains, experience, portfolioUrl, whyJoin,
+            techCyberExperience, techLanguage, techWhyDomain, techPriorExperience, techCtfParticipated,
+            techCtfOther, techCtfConfidence, techGithub, techLinkedin, techProject,
+            eventsWhyJoin, eventsPriorExperience, eventsPlanSteps, eventsOrientationIdeas, eventsExcites, createdAt
      FROM applications
      ORDER BY createdAt DESC`
   );
@@ -59,6 +77,8 @@ export default async function AdminPage() {
               <th>Domains</th>
               <th>Portfolio</th>
               <th>Why join</th>
+              <th>Tech domain answers</th>
+              <th>Events domain answers</th>
             </tr>
           </thead>
           <tbody>
@@ -78,6 +98,41 @@ export default async function AdminPage() {
                   ) : "—"}
                 </td>
                 <td style={{ maxWidth: "22rem" }}>{s.whyJoin}</td>
+                <td style={{ maxWidth: "26rem", fontSize: "0.8rem" }}>
+                  {Array.isArray(s.domains) && s.domains.includes("tech") ? (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                      <span><strong>Cyber exp:</strong> {s.techCyberExperience || "—"}</span>
+                      <span><strong>Language:</strong> {s.techLanguage || "—"}</span>
+                      <span><strong>Why tech:</strong> {s.techWhyDomain || "—"}</span>
+                      <span><strong>Prior tech exp:</strong> {s.techPriorExperience || "—"}</span>
+                      <span>
+                        <strong>CTFs:</strong>{" "}
+                        {s.techCtfParticipated === "other"
+                          ? s.techCtfOther || "other"
+                          : s.techCtfParticipated || "—"}
+                      </span>
+                      <span><strong>CTF confidence:</strong> {s.techCtfConfidence || "—"}/10</span>
+                      <span><strong>GitHub:</strong> {s.techGithub || "—"}</span>
+                      <span><strong>LinkedIn:</strong> {s.techLinkedin || "—"}</span>
+                      <span><strong>Project:</strong> {s.techProject || "—"}</span>
+                    </div>
+                  ) : (
+                    "—"
+                  )}
+                </td>
+                <td style={{ maxWidth: "26rem", fontSize: "0.8rem" }}>
+                  {Array.isArray(s.domains) && s.domains.includes("events") ? (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                      <span><strong>Why join:</strong> {s.eventsWhyJoin || "—"}</span>
+                      <span><strong>Prior event exp:</strong> {s.eventsPriorExperience || "—"}</span>
+                      <span><strong>Plan steps:</strong> {s.eventsPlanSteps || "—"}</span>
+                      <span><strong>Orientation ideas:</strong> {s.eventsOrientationIdeas || "—"}</span>
+                      <span><strong>Excites:</strong> {s.eventsExcites || "—"}</span>
+                    </div>
+                  ) : (
+                    "—"
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>

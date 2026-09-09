@@ -12,6 +12,8 @@ const DOMAINS = [
 
 const YEARS = ["1", "2", "3", "4"];
 
+const CTF_SCALE = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
+
 type FormState = {
   fullName: string;
   srn: string;
@@ -23,6 +25,23 @@ type FormState = {
   experience: string;
   portfolioUrl: string;
   whyJoin: string;
+  // Tech-domain-only questions — only shown/required when "tech" is picked above.
+  techCyberExperience: string; // "yes" | "no"
+  techLanguage: string;
+  techWhyDomain: string;
+  techPriorExperience: string;
+  techCtfParticipated: string; // "yes" | "no" | "other"
+  techCtfOther: string;
+  techCtfConfidence: string; // "1".."10"
+  techGithub: string;
+  techLinkedin: string;
+  techProject: string;
+  // Events-domain-only questions — only shown/required when "events" is picked above.
+  eventsWhyJoin: string;
+  eventsPriorExperience: string;
+  eventsPlanSteps: string;
+  eventsOrientationIdeas: string;
+  eventsExcites: string;
   website: string; // honeypot
 };
 
@@ -37,6 +56,21 @@ const initialState: FormState = {
   experience: "",
   portfolioUrl: "",
   whyJoin: "",
+  techCyberExperience: "",
+  techLanguage: "",
+  techWhyDomain: "",
+  techPriorExperience: "",
+  techCtfParticipated: "",
+  techCtfOther: "",
+  techCtfConfidence: "",
+  techGithub: "",
+  techLinkedin: "",
+  techProject: "",
+  eventsWhyJoin: "",
+  eventsPriorExperience: "",
+  eventsPlanSteps: "",
+  eventsOrientationIdeas: "",
+  eventsExcites: "",
   website: "",
 };
 
@@ -55,11 +89,18 @@ export default function JoinPage() {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
+  const MAX_DOMAINS = 2;
+
   function toggleDomain(id: string) {
-    setForm((f) => ({
-      ...f,
-      domains: f.domains.includes(id) ? f.domains.filter((d) => d !== id) : [...f.domains, id],
-    }));
+    setForm((f) => {
+      if (f.domains.includes(id)) {
+        return { ...f, domains: f.domains.filter((d) => d !== id) };
+      }
+      if (f.domains.length >= MAX_DOMAINS) {
+        return f; // already at the cap — ignore the click
+      }
+      return { ...f, domains: [...f.domains, id] };
+    });
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -231,39 +272,175 @@ export default function JoinPage() {
 
         <div className={`field ${errors.domains ? "has-error" : ""}`}>
           <label>Domains you're drawn to</label>
+          <span className="hint">Pick up to {MAX_DOMAINS}</span>
           <div className="checkbox-grid">
-            {DOMAINS.map((d) => (
-              <label key={d.id} className="chip-check">
-                <input type="checkbox" checked={form.domains.includes(d.id)}
-                  onChange={() => toggleDomain(d.id)} />
-                {d.label}
-              </label>
-            ))}
+            {DOMAINS.map((d) => {
+              const checked = form.domains.includes(d.id);
+              const disabled = !checked && form.domains.length >= MAX_DOMAINS;
+              return (
+                <label key={d.id} className={`chip-check ${disabled ? "chip-check-disabled" : ""}`}>
+                  <input type="checkbox" checked={checked} disabled={disabled}
+                    onChange={() => toggleDomain(d.id)} />
+                  {d.label}
+                </label>
+              );
+            })}
           </div>
           {errors.domains && <span className="error">{errors.domains}</span>}
         </div>
 
-        <div className={`field ${errors.portfolioUrl ? "has-error" : ""}`}>
-          <label htmlFor="portfolioUrl">Portfolio / GitHub / writeups link</label>
-          <span className="hint">optional — a link is fine, no need to attach files</span>
-          <input id="portfolioUrl" type="url" maxLength={300} placeholder="https://github.com/..."
-            value={form.portfolioUrl} onChange={(e) => update("portfolioUrl", e.target.value)} />
-          {errors.portfolioUrl && <span className="error">{errors.portfolioUrl}</span>}
-        </div>
+        {form.domains.includes("tech") && (
+          <div className="card" style={{ margin: "0 0 1.5rem", padding: "1.1rem 1.2rem" }}>
+            <p className="tag">tech domain questions</p>
 
-        <div className={`field ${errors.experience ? "has-error" : ""}`}>
-          <label htmlFor="experience">Prior experience</label>
-          <span className="hint">optional — CTFs, projects, courses, anything relevant</span>
-          <textarea id="experience" maxLength={1500}
-            value={form.experience} onChange={(e) => update("experience", e.target.value)} />
-        </div>
+            <div className={`field ${errors.techCyberExperience ? "has-error" : ""}`} style={{ marginTop: "1rem" }}>
+              <label>Do you have any prior experience in cybersecurity?</label>
+              <div className="checkbox-grid">
+                {[["yes", "Yes"], ["no", "No"]].map(([value, label]) => (
+                  <label key={value} className="chip-check">
+                    <input
+                      type="radio"
+                      name="techCyberExperience"
+                      checked={form.techCyberExperience === value}
+                      onChange={() => update("techCyberExperience", value)}
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
+              {errors.techCyberExperience && <span className="error">{errors.techCyberExperience}</span>}
+            </div>
 
-        <div className={`field ${errors.whyJoin ? "has-error" : ""}`}>
-          <label htmlFor="whyJoin">Why do you want to join?</label>
-          <textarea id="whyJoin" required maxLength={1500}
-            value={form.whyJoin} onChange={(e) => update("whyJoin", e.target.value)} />
-          {errors.whyJoin && <span className="error">{errors.whyJoin}</span>}
-        </div>
+            <div className={`field ${errors.techLanguage ? "has-error" : ""}`}>
+              <label htmlFor="techLanguage">Which language can you code in?</label>
+              <input id="techLanguage" type="text" maxLength={200}
+                value={form.techLanguage} onChange={(e) => update("techLanguage", e.target.value)} />
+              {errors.techLanguage && <span className="error">{errors.techLanguage}</span>}
+            </div>
+
+            <div className={`field ${errors.techWhyDomain ? "has-error" : ""}`}>
+              <label htmlFor="techWhyDomain">Why do you want to join this domain?</label>
+              <textarea id="techWhyDomain" maxLength={1500}
+                value={form.techWhyDomain} onChange={(e) => update("techWhyDomain", e.target.value)} />
+              {errors.techWhyDomain && <span className="error">{errors.techWhyDomain}</span>}
+            </div>
+
+            <div className={`field ${errors.techPriorExperience ? "has-error" : ""}`}>
+              <label htmlFor="techPriorExperience">
+                Do you have prior experience in tech (coding, web dev, hardware, cybersecurity, AI/ML, etc.)? If yes, explain briefly.
+              </label>
+              <textarea id="techPriorExperience" maxLength={1500}
+                value={form.techPriorExperience} onChange={(e) => update("techPriorExperience", e.target.value)} />
+              {errors.techPriorExperience && <span className="error">{errors.techPriorExperience}</span>}
+            </div>
+
+            <div className={`field ${errors.techCtfParticipated ? "has-error" : ""}`}>
+              <label>Have you participated in any CTFs?</label>
+              <div className="checkbox-grid">
+                {[["yes", "Yes"], ["no", "No"], ["other", "Other"]].map(([value, label]) => (
+                  <label key={value} className="chip-check">
+                    <input
+                      type="radio"
+                      name="techCtfParticipated"
+                      checked={form.techCtfParticipated === value}
+                      onChange={() => update("techCtfParticipated", value)}
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
+              {form.techCtfParticipated === "other" && (
+                <input type="text" maxLength={300} placeholder="please specify"
+                  style={{ marginTop: "0.4rem" }}
+                  value={form.techCtfOther} onChange={(e) => update("techCtfOther", e.target.value)} />
+              )}
+              {errors.techCtfParticipated && <span className="error">{errors.techCtfParticipated}</span>}
+            </div>
+
+            <div className={`field ${errors.techCtfConfidence ? "has-error" : ""}`}>
+              <label>On a scale of 1–10, how confident are you in making CTF challenges?</label>
+              <span className="hint">1 being the least confidence and 10 being the most</span>
+              <div className="checkbox-grid" style={{ gridTemplateColumns: "repeat(10, minmax(2.4rem, 1fr))" }}>
+                {CTF_SCALE.map((n) => (
+                  <label key={n} className="chip-check" style={{ justifyContent: "center" }}>
+                    <input
+                      type="radio"
+                      name="techCtfConfidence"
+                      checked={form.techCtfConfidence === n}
+                      onChange={() => update("techCtfConfidence", n)}
+                    />
+                    {n}
+                  </label>
+                ))}
+              </div>
+              {errors.techCtfConfidence && <span className="error">{errors.techCtfConfidence}</span>}
+            </div>
+
+            <div className={`field ${errors.techGithub ? "has-error" : ""}`}>
+              <label htmlFor="techGithub">GitHub profile (NA if none)</label>
+              <input id="techGithub" type="text" maxLength={300}
+                value={form.techGithub} onChange={(e) => update("techGithub", e.target.value)} />
+              {errors.techGithub && <span className="error">{errors.techGithub}</span>}
+            </div>
+
+            <div className={`field ${errors.techLinkedin ? "has-error" : ""}`}>
+              <label htmlFor="techLinkedin">LinkedIn profile (NA if none)</label>
+              <input id="techLinkedin" type="text" maxLength={300}
+                value={form.techLinkedin} onChange={(e) => update("techLinkedin", e.target.value)} />
+              {errors.techLinkedin && <span className="error">{errors.techLinkedin}</span>}
+            </div>
+
+            <div className={`field ${errors.techProject ? "has-error" : ""}`} style={{ marginBottom: 0 }}>
+              <label htmlFor="techProject">Share a project, hackathon, or coding challenge you've worked on that you're proud of.</label>
+              <textarea id="techProject" maxLength={1500}
+                value={form.techProject} onChange={(e) => update("techProject", e.target.value)} />
+              {errors.techProject && <span className="error">{errors.techProject}</span>}
+            </div>
+          </div>
+        )}
+
+        {form.domains.includes("events") && (
+          <div className="card" style={{ margin: "0 0 1.5rem", padding: "1.1rem 1.2rem" }}>
+            <p className="tag">events domain questions</p>
+
+            <div className={`field ${errors.eventsWhyJoin ? "has-error" : ""}`} style={{ marginTop: "1rem" }}>
+              <label htmlFor="eventsWhyJoin">Why do you want to join the Events &amp; Ops team?</label>
+              <textarea id="eventsWhyJoin" maxLength={1500}
+                value={form.eventsWhyJoin} onChange={(e) => update("eventsWhyJoin", e.target.value)} />
+              {errors.eventsWhyJoin && <span className="error">{errors.eventsWhyJoin}</span>}
+            </div>
+
+            <div className={`field ${errors.eventsPriorExperience ? "has-error" : ""}`}>
+              <label htmlFor="eventsPriorExperience">
+                Do you have prior experience organizing or managing events (college fests, workshops, meetups, etc.)? If yes, explain briefly.
+              </label>
+              <textarea id="eventsPriorExperience" maxLength={1500}
+                value={form.eventsPriorExperience} onChange={(e) => update("eventsPriorExperience", e.target.value)} />
+              {errors.eventsPriorExperience && <span className="error">{errors.eventsPriorExperience}</span>}
+            </div>
+
+            <div className={`field ${errors.eventsPlanSteps ? "has-error" : ""}`}>
+              <label htmlFor="eventsPlanSteps">Walk us through the steps you'd follow to plan and execute an event from start to finish.</label>
+              <textarea id="eventsPlanSteps" maxLength={1500}
+                value={form.eventsPlanSteps} onChange={(e) => update("eventsPlanSteps", e.target.value)} />
+              {errors.eventsPlanSteps && <span className="error">{errors.eventsPlanSteps}</span>}
+            </div>
+
+            <div className={`field ${errors.eventsOrientationIdeas ? "has-error" : ""}`}>
+              <label htmlFor="eventsOrientationIdeas">Suggest a few activities to conduct on orientation day to make juniors interested in the club.</label>
+              <textarea id="eventsOrientationIdeas" maxLength={1500}
+                value={form.eventsOrientationIdeas} onChange={(e) => update("eventsOrientationIdeas", e.target.value)} />
+              {errors.eventsOrientationIdeas && <span className="error">{errors.eventsOrientationIdeas}</span>}
+            </div>
+
+            <div className={`field ${errors.eventsExcites ? "has-error" : ""}`} style={{ marginBottom: 0 }}>
+              <label htmlFor="eventsExcites">What excites you about event management, and why do you want to try it out in our club?</label>
+              <textarea id="eventsExcites" maxLength={1500}
+                value={form.eventsExcites} onChange={(e) => update("eventsExcites", e.target.value)} />
+              {errors.eventsExcites && <span className="error">{errors.eventsExcites}</span>}
+            </div>
+          </div>
+        )}
 
         {status === "error" && errorMsg && (
           <p style={{ color: "var(--danger)", fontSize: "0.85rem", marginBottom: "1rem" }}>{errorMsg}</p>

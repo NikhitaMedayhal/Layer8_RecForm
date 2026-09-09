@@ -37,7 +37,18 @@ async function main() {
     .filter(Boolean);
 
   for (const statement of statements) {
-    await client.execute(statement);
+    try {
+      await client.execute(statement);
+    } catch (err: any) {
+      // ALTER TABLE ADD COLUMN isn't idempotent in SQLite/libSQL — if this
+      // schema was already applied, the column exists and that's fine.
+      const message = String(err?.message || "");
+      if (message.includes("duplicate column name")) {
+        console.log(`Skipped (already applied): ${statement.split("\n")[0]}`);
+        continue;
+      }
+      throw err;
+    }
   }
 
   console.log(`Migration applied: ${statements.length} statement(s) run against ${url}`);

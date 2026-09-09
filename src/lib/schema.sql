@@ -21,9 +21,47 @@ CREATE TABLE IF NOT EXISTS applications (
   experience TEXT,
   portfolioUrl TEXT,
   whyJoin TEXT NOT NULL,
+  -- Tech-domain-only questions, filled only when "tech" is picked as a domain.
+  techCyberExperience TEXT,
+  techLanguage TEXT,
+  techWhyDomain TEXT,
+  techPriorExperience TEXT,
+  techCtfParticipated TEXT,
+  techCtfOther TEXT,
+  techCtfConfidence TEXT,
+  techGithub TEXT,
+  techLinkedin TEXT,
+  techProject TEXT,
+  -- Events-domain-only questions, filled only when "events" is picked as a domain.
+  eventsWhyJoin TEXT,
+  eventsPriorExperience TEXT,
+  eventsPlanSteps TEXT,
+  eventsOrientationIdeas TEXT,
+  eventsExcites TEXT,
   sourceIp TEXT,
   createdAt TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+-- The columns below are added via ALTER TABLE for anyone who already has an
+-- `applications` table from before the tech-domain questions existed. On a
+-- brand-new database these are no-ops since CREATE TABLE above already
+-- includes them, but migrate.ts tolerates the "duplicate column" error either
+-- way so this file stays safe to re-run.
+ALTER TABLE applications ADD COLUMN techCyberExperience TEXT;
+ALTER TABLE applications ADD COLUMN techLanguage TEXT;
+ALTER TABLE applications ADD COLUMN techWhyDomain TEXT;
+ALTER TABLE applications ADD COLUMN techPriorExperience TEXT;
+ALTER TABLE applications ADD COLUMN techCtfParticipated TEXT;
+ALTER TABLE applications ADD COLUMN techCtfOther TEXT;
+ALTER TABLE applications ADD COLUMN techCtfConfidence TEXT;
+ALTER TABLE applications ADD COLUMN techGithub TEXT;
+ALTER TABLE applications ADD COLUMN techLinkedin TEXT;
+ALTER TABLE applications ADD COLUMN techProject TEXT;
+ALTER TABLE applications ADD COLUMN eventsWhyJoin TEXT;
+ALTER TABLE applications ADD COLUMN eventsPriorExperience TEXT;
+ALTER TABLE applications ADD COLUMN eventsPlanSteps TEXT;
+ALTER TABLE applications ADD COLUMN eventsOrientationIdeas TEXT;
+ALTER TABLE applications ADD COLUMN eventsExcites TEXT;
 
 CREATE INDEX IF NOT EXISTS idx_applications_createdAt ON applications (createdAt DESC);
 

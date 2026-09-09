@@ -177,6 +177,11 @@ h1, h2, h3 { font-family: var(--font-display), var(--font-mono), sans-serif; fon
   color: var(--fg);
 }
 .chip-check input { accent-color: var(--accent); }
+.chip-check-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.chip-check-disabled input { cursor: not-allowed; }
 
 .term {
   background: color-mix(in srgb, var(--bg-2) 88%, black);

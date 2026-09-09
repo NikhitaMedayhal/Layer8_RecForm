@@ -12,7 +12,10 @@ export async function GET() {
   }
 
   const result = await turso.execute(
-    `SELECT id, fullName, srn, branch, year, email, phone, domains, experience, portfolioUrl, whyJoin, createdAt
+    `SELECT id, fullName, srn, branch, year, email, phone, domains, experience, portfolioUrl, whyJoin,
+            techCyberExperience, techLanguage, techWhyDomain, techPriorExperience, techCtfParticipated,
+            techCtfOther, techCtfConfidence, techGithub, techLinkedin, techProject,
+            eventsWhyJoin, eventsPriorExperience, eventsPlanSteps, eventsOrientationIdeas, eventsExcites, createdAt
      FROM applications
      ORDER BY createdAt DESC`
   );
