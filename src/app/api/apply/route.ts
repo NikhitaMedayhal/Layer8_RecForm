@@ -1,140 +1,165 @@
-import { NextRequest, NextResponse } from "next/server";
-import { turso } from "@/lib/turso";
-import { applicationSchema } from "@/lib/validation";
-import { isRateLimited } from "@/lib/rateLimit";
-import { appendToSheet } from "@/lib/googleSheets";
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { turso } from "@/lib/turso"; // Adjust if your export is named differently (e.g., db or client)
 import { getClientIp } from "@/lib/getClientIp";
 
-export const runtime = "nodejs";
+// 1. Zod Validation Schema
+const applySchema = z.object({
+  fullName: z.string().min(1, "Full name is required").max(100),
+  srn: z.string().min(1, "SRN is required").max(20),
+  branch: z.string().min(1, "Branch is required").max(60),
+  year: z.enum(["1", "2", "3", "4"]),
+  email: z.string().email("Invalid email format").max(120),
+  phone: z.string().min(10, "Phone is required").max(15),
+  domains: z.array(z.enum(["marketing", "media", "design", "tech", "events"])).min(1).max(2),
+  
+  // FIX 1: Added domainAnswers to the schema
+  domainAnswers: z.record(z.string(), z.string()).optional().default({}),
+  
+  experience: z.string().optional(),
+  portfolioUrl: z.string().optional(),
+  
+  // FIX 2: Fallback to empty string so it passes the NOT NULL constraint in SQL
+  whyJoin: z.string().optional().default(""), 
 
-export async function POST(req: NextRequest) {
-  const ip = getClientIp(req.headers);
+  // Tech Domain (Optional)
+  techCyberExperience: z.string().optional(),
+  techLanguage: z.string().optional(),
+  techWhyDomain: z.string().optional(),
+  techPriorExperience: z.string().optional(),
+  techCtfParticipated: z.string().optional(),
+  techCtfOther: z.string().optional(),
+  techCtfConfidence: z.string().optional(),
+  techGithub: z.string().optional(),
+  techLinkedin: z.string().optional(),
+  techProject: z.string().optional(),
 
-  if (isRateLimited(ip)) {
-    return NextResponse.json(
-      { ok: false, error: "Too many submissions. Try again in a minute." },
-      { status: 429 }
-    );
-  }
+  // Events Domain (Optional)
+  eventsWhyJoin: z.string().optional(),
+  eventsPriorExperience: z.string().optional(),
+  eventsPlanSteps: z.string().optional(),
+  eventsOrientationIdeas: z.string().optional(),
+  eventsExcites: z.string().optional(),
+  
+  // Honeypot field
+  website: z.string().optional(), 
+});
 
-  let body: unknown;
+export async function POST(req: Request) {
   try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ ok: false, error: "Malformed request body." }, { status: 400 });
-  }
+    const body = await req.json();
 
-  const parsed = applicationSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { ok: false, error: "Validation failed.", details: parsed.error.flatten() },
-      { status: 400 }
-    );
-  }
+    // Spam protection: if honeypot is filled, silently drop it and return success
+    if (body.website) {
+      return NextResponse.json({ ok: true });
+    }
 
-  const data = parsed.data;
-
-  // Honeypot: humans never see/fill this field. If it's non-empty, a bot did.
-  // Pretend success so the bot doesn't learn its request was rejected.
-  if (data.website) {
-    return NextResponse.json({ ok: true });
-  }
-
-  const { website, ...clean } = data;
-  const createdAt = new Date();
-
-  // Block resubmissions up front (fast path, clear error message).
-  // The unique indexes on `email`/`srn` in schema.sql are the real
-  // enforcement — this check just avoids hitting that as a raw DB error
-  // in the common case.
-  try {
-    const existing = await turso.execute({
-      sql: `SELECT id FROM applications WHERE email = ? OR srn = ? LIMIT 1`,
-      args: [clean.email, clean.srn],
-    });
-    if (existing.rows.length > 0) {
+    // Validate request body
+    const parsed = applySchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        {
-          ok: false,
-          error: "An application with this email or SRN has already been submitted.",
+        { 
+          ok: false, 
+          error: "Validation failed", 
+          details: { fieldErrors: parsed.error.flatten().fieldErrors } 
         },
-        { status: 409 }
+        { status: 400 }
       );
     }
-  } catch (err) {
-    console.error("[apply] Duplicate check failed:", err);
+
+    const clean = parsed.data;
+    const sourceIp = getClientIp(req) || "unknown";
+
+    try {
+      // 2. Database Insertion with exact argument ordering
+      await turso.execute({
+        sql: `
+          INSERT INTO applications (
+            fullName, srn, branch, year, email, phone, domains, domainAnswers,
+            experience, portfolioUrl, whyJoin,
+            techCyberExperience, techLanguage, techWhyDomain, techPriorExperience,
+            techCtfParticipated, techCtfOther, techCtfConfidence, techGithub, techLinkedin, techProject,
+            eventsWhyJoin, eventsPriorExperience, eventsPlanSteps, eventsOrientationIdeas, eventsExcites,
+            sourceIp
+          ) VALUES (
+            ?, ?, ?, ?, ?, ?, ?, ?,
+            ?, ?, ?,
+            ?, ?, ?, ?,
+            ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?,
+            ?
+          )
+        `,
+        args: [
+          clean.fullName,
+          clean.srn,
+          clean.branch,
+          clean.year,
+          clean.email,
+          clean.phone,
+          JSON.stringify(clean.domains),
+          
+          // Fix 1 implementation
+          JSON.stringify(clean.domainAnswers),
+          
+          clean.experience ?? null,
+          clean.portfolioUrl ?? null,
+          
+          // Fix 2 implementation
+          clean.whyJoin, 
+
+          // Tech fields fallback to null instead of undefined
+          clean.techCyberExperience ?? null,
+          clean.techLanguage ?? null,
+          clean.techWhyDomain ?? null,
+          clean.techPriorExperience ?? null,
+          clean.techCtfParticipated ?? null,
+          clean.techCtfOther ?? null,
+          clean.techCtfConfidence ?? null,
+          clean.techGithub ?? null,
+          clean.techLinkedin ?? null,
+          clean.techProject ?? null,
+
+          // Events fields fallback to null instead of undefined
+          clean.eventsWhyJoin ?? null,
+          clean.eventsPriorExperience ?? null,
+          clean.eventsPlanSteps ?? null,
+          clean.eventsOrientationIdeas ?? null,
+          clean.eventsExcites ?? null,
+
+          sourceIp
+        ],
+      });
+
+      return NextResponse.json({ ok: true });
+      
+    } catch (dbError: any) {
+      // Handle Unique Constraint Violations safely
+      const msg = dbError?.message || "";
+      if (msg.includes("UNIQUE constraint failed: applications.email")) {
+        return NextResponse.json(
+          { ok: false, error: "An application with this email already exists." },
+          { status: 400 }
+        );
+      }
+      if (msg.includes("UNIQUE constraint failed: applications.srn")) {
+        return NextResponse.json(
+          { ok: false, error: "An application with this SRN already exists." },
+          { status: 400 }
+        );
+      }
+
+      console.error("Database Error:", dbError);
+      return NextResponse.json(
+        { ok: false, error: "Internal database error. Please try again." },
+        { status: 500 }
+      );
+    }
+  } catch (error) {
+    console.error("Server Error:", error);
     return NextResponse.json(
-      { ok: false, error: "Could not save your application. Please try again shortly." },
+      { ok: false, error: "Bad request or server error." },
       { status: 500 }
     );
   }
-
-  try {
-    await turso.execute({
-sql: `INSERT INTO applications
-        (fullName, srn, branch, year, email, phone, domains, domainAnswers, experience, portfolioUrl, whyJoin,
-         techCyberExperience, techLanguage, techWhyDomain, techPriorExperience, techCtfParticipated,
-         techCtfOther, techCtfConfidence, techGithub, techLinkedin, techProject,
-         eventsWhyJoin, eventsPriorExperience, eventsPlanSteps, eventsOrientationIdeas, eventsExcites,
-         sourceIp, createdAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      args: [
-        clean.fullName,
-        clean.srn,
-        clean.branch,
-        clean.year,
-        clean.email,
-        clean.phone,
-        JSON.stringify(clean.domains),
-        JSON.stringify(clean.domainAnswers),
-        clean.experience || null,
-        clean.portfolioUrl || null,
-        clean.whyJoin,
-        clean.techCyberExperience || null,
-        clean.techLanguage || null,
-        clean.techWhyDomain || null,
-        clean.techPriorExperience || null,
-        clean.techCtfParticipated || null,
-        clean.techCtfOther || null,
-        clean.techCtfConfidence || null,
-        clean.techGithub || null,
-        clean.techLinkedin || null,
-        clean.techProject || null,
-        clean.eventsWhyJoin || null,
-        clean.eventsPriorExperience || null,
-        clean.eventsPlanSteps || null,
-        clean.eventsOrientationIdeas || null,
-        clean.eventsExcites || null,
-        ip,
-        createdAt.toISOString(),
-      ],
-    });
-  } catch (err: any) {
-    // Race condition: two identical submissions landed at nearly the same
-    // time and both passed the check above. The unique index catches it here.
-    const message = String(err?.message || "");
-    if (message.includes("UNIQUE constraint failed")) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "An application with this email or SRN has already been submitted.",
-        },
-        { status: 409 }
-      );
-    }
-    console.error("[apply] Turso insert failed:", err);
-    return NextResponse.json(
-      { ok: false, error: "Could not save your application. Please try again shortly." },
-      { status: 500 }
-    );
-  }
-  // Best-effort: the application is already safely stored, so a Sheets
-  // hiccup shouldn't fail the whole request for the applicant.
-  try {
-    await appendToSheet({ ...clean, createdAt });
-  } catch (err) {
-    console.error("[apply] Sheets sync failed (submission was still saved):", err);
-  }
-
-  return NextResponse.json({ ok: true });
 }

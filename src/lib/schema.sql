@@ -63,6 +63,7 @@ ALTER TABLE applications ADD COLUMN eventsPriorExperience TEXT;
 ALTER TABLE applications ADD COLUMN eventsPlanSteps TEXT;
 ALTER TABLE applications ADD COLUMN eventsOrientationIdeas TEXT;
 ALTER TABLE applications ADD COLUMN eventsExcites TEXT;
+ALTER TABLE applications ADD COLUMN domainAnswers TEXT;
 
 CREATE INDEX IF NOT EXISTS idx_applications_createdAt ON applications (createdAt DESC);
 
