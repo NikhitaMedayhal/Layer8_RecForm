@@ -30,6 +30,7 @@ type Application = {
   eventsPlanSteps?: string;
   eventsOrientationIdeas?: string;
   eventsExcites?: string;
+  feedback?: string;
   createdAt: string;
 };
 
@@ -38,7 +39,7 @@ export default async function AdminPage() {
     `SELECT id, fullName, srn, branch, year, email, phone, domains, experience, portfolioUrl, whyJoin,
             techCyberExperience, techLanguage, techWhyDomain, techPriorExperience, techCtfParticipated,
             techCtfOther, techCtfConfidence, techGithub, techLinkedin, techProject,
-            eventsWhyJoin, eventsPriorExperience, eventsPlanSteps, eventsOrientationIdeas, eventsExcites, createdAt
+            eventsWhyJoin, eventsPriorExperience, eventsPlanSteps, eventsOrientationIdeas, eventsExcites, feedback, createdAt
      FROM applications
      ORDER BY createdAt DESC`
   );
@@ -79,6 +80,7 @@ export default async function AdminPage() {
               <th>Why join</th>
               <th>Tech domain answers</th>
               <th>Events domain answers</th>
+              <th>Feedback &amp; queries</th>
             </tr>
           </thead>
           <tbody>
@@ -133,6 +135,7 @@ export default async function AdminPage() {
                     "—"
                   )}
                 </td>
+                <td style={{ maxWidth: "22rem", fontSize: "0.8rem" }}>{s.feedback || "—"}</td>
               </tr>
             ))}
           </tbody>

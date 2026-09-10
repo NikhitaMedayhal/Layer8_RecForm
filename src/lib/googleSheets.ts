@@ -54,11 +54,12 @@ export async function appendToSheet(app: ApplicationInput & { createdAt: Date })
     app.eventsPlanSteps || "",
     app.eventsOrientationIdeas || "",
     app.eventsExcites || "",
+    app.feedback || "",
   ];
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: sheetId,
-    range: "Submissions!A:Y",
+    range: "Submissions!A:Z",
     valueInputOption: "USER_ENTERED",
     insertDataOption: "INSERT_ROWS",
     requestBody: { values: [row] },

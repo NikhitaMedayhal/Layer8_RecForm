@@ -168,6 +168,7 @@ type FormState = {
   eventsPlanSteps: string;
   eventsOrientationIdeas: string;
   eventsExcites: string;
+  feedback: string;
   website: string; // honeypot
 };
 
@@ -198,6 +199,7 @@ const initialState: FormState = {
   eventsPlanSteps: "",
   eventsOrientationIdeas: "",
   eventsExcites: "",
+  feedback: "",
   website: "",
 };
 
@@ -510,28 +512,6 @@ export default function JoinPage() {
             {errors.domains && <span className="error">{errors.domains}</span>}
           </div>
 
-            {form.domains.length > 0 && (
-            <div className="card" style={{ margin: "0 0 1.75rem", padding: "1.1rem 1.2rem" }}>
-              <p className="tag">portfolio links — read this first</p>
-              <p style={{ marginTop: "0.7rem", fontSize: "0.88rem", color: "var(--fg-dim)" }}>
-                You may have to add a link to your portfolio, make sure you make the link accessible to everyone!
-              </p>
-              <p style={{ marginTop: "0.6rem", fontSize: "0.88rem", color: "var(--fg-dim)" }}>
-                Follow these steps if you don't know how to:
-              </p>
-              <ol style={{ margin: "0.6rem 0 0", paddingLeft: "1.2rem", display: "flex", flexDirection: "column", gap: "0.35rem" }}>
-                <li style={{ fontSize: "0.85rem", color: "var(--fg-faint)" }}>
-                  Open Google Drive and right-click the file/folder (or open it and click Share in the top-right).
-                </li>
-                <li style={{ fontSize: "0.85rem", color: "var(--fg-faint)" }}>Click Share.</li>
-                <li style={{ fontSize: "0.85rem", color: "var(--fg-faint)" }}>
-                  Under "General access," click the dropdown that says Restricted.
-                </li>
-                <li style={{ fontSize: "0.85rem", color: "var(--fg-faint)" }}>Select Anyone with the link.</li>
-              </ol>
-            </div>
-          )}
-
           {/* Dynamic questions for marketing, media, design */}
           {form.domains.map((domain) => {
             const questions = DOMAIN_QUESTIONS[domain as keyof typeof DOMAIN_QUESTIONS];
@@ -831,6 +811,20 @@ export default function JoinPage() {
               </div>
             </div>
           )}
+
+          <div className={`field ${errors.feedback ? "has-error" : ""}`}>
+            <label htmlFor="feedback">
+              If you have any feedback, inputs, or suggestions regarding the club or events or anything in general, please share them below
+            </label>
+            <textarea
+              id="feedback"
+              required
+              maxLength={1500}
+              value={form.feedback}
+              onChange={(e) => update("feedback", e.target.value)}
+            />
+            {errors.feedback && <span className="error">{errors.feedback}</span>}
+          </div>
 
           {status === "error" && errorMsg && (
             <p style={{ color: "var(--danger)", fontSize: "0.85rem", marginBottom: "1rem" }}>{errorMsg}</p>

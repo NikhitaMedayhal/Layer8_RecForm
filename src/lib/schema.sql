@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS applications (
   eventsPlanSteps TEXT,
   eventsOrientationIdeas TEXT,
   eventsExcites TEXT,
+  feedback TEXT,
   sourceIp TEXT,
   createdAt TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -64,6 +65,7 @@ ALTER TABLE applications ADD COLUMN eventsPlanSteps TEXT;
 ALTER TABLE applications ADD COLUMN eventsOrientationIdeas TEXT;
 ALTER TABLE applications ADD COLUMN eventsExcites TEXT;
 ALTER TABLE applications ADD COLUMN domainAnswers TEXT;
+ALTER TABLE applications ADD COLUMN feedback TEXT;
 
 CREATE INDEX IF NOT EXISTS idx_applications_createdAt ON applications (createdAt DESC);
 

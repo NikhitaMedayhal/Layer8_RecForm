@@ -40,7 +40,10 @@ const applySchema = z.object({
   eventsPlanSteps: z.string().optional(),
   eventsOrientationIdeas: z.string().optional(),
   eventsExcites: z.string().optional(),
-  
+
+  // Feedback & Queries (shown to every applicant, required)
+  feedback: z.string().min(1, "Feedback is required").max(1500),
+
   // Honeypot field
   website: z.string().optional(), 
 });
@@ -80,6 +83,7 @@ export async function POST(req: Request) {
             techCyberExperience, techLanguage, techWhyDomain, techPriorExperience,
             techCtfParticipated, techCtfOther, techCtfConfidence, techGithub, techLinkedin, techProject,
             eventsWhyJoin, eventsPriorExperience, eventsPlanSteps, eventsOrientationIdeas, eventsExcites,
+            feedback,
             sourceIp
           ) VALUES (
             ?, ?, ?, ?, ?, ?, ?, ?,
@@ -87,6 +91,7 @@ export async function POST(req: Request) {
             ?, ?, ?, ?,
             ?, ?, ?, ?, ?, ?,
             ?, ?, ?, ?, ?,
+            ?,
             ?
           )
         `,
@@ -126,6 +131,8 @@ export async function POST(req: Request) {
           clean.eventsPlanSteps ?? null,
           clean.eventsOrientationIdeas ?? null,
           clean.eventsExcites ?? null,
+
+          clean.feedback,
 
           sourceIp
         ],

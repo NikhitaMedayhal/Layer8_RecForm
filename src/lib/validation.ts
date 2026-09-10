@@ -60,6 +60,9 @@ const baseSchema = z.object({
   eventsOrientationIdeas: cleanString(0, 1500).optional().or(z.literal("")),
   eventsExcites: cleanString(0, 1500).optional().or(z.literal("")),
 
+  // Feedback & Queries — shown to every applicant, required regardless of domain.
+  feedback: cleanString(1, 1500),
+
   // Honeypot — must arrive empty. Real users never see or fill this field.
   website: z.string().max(0, "").optional().or(z.literal("")),
 });

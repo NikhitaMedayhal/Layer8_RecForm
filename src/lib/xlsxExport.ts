@@ -29,6 +29,7 @@ type ApplicationDoc = {
   eventsPlanSteps?: string;
   eventsOrientationIdeas?: string;
   eventsExcites?: string;
+  feedback?: string;
   createdAt: Date | string;
 };
 
@@ -59,6 +60,7 @@ export function buildApplicationsWorkbook(submissions: ApplicationDoc[]): Buffer
     "Event Planning Steps": s.eventsPlanSteps || "",
     "Orientation Day Ideas": s.eventsOrientationIdeas || "",
     "What Excites (events)": s.eventsExcites || "",
+    "Feedback & Queries": s.feedback || "",
   }));
 
   const worksheet = XLSX.utils.json_to_sheet(rows);
