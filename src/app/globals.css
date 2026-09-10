@@ -135,6 +135,36 @@ h1, h2, h3 { font-family: var(--font-display), var(--font-mono), sans-serif; fon
 .field { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1.1rem; }
 .field label { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg-dim); }
 .field .hint { font-size: 0.72rem; color: var(--fg-faint); }
+
+.role-list {
+  border-left: 2px solid var(--accent);
+  padding: 0.6rem 0 0.6rem 0.9rem;
+  margin: 0.9rem 0 1.4rem;
+}
+.role-list-title {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  margin: 0 0 0.4rem;
+}
+.role-list ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.role-list li {
+  font-size: 0.82rem;
+  color: var(--fg-faint);
+  line-height: 1.4;
+}
+.role-list li ul {
+  margin-top: 0.25rem;
+  padding-left: 1.1rem;
+}
+
 .field input[type="text"],
 .field input[type="email"],
 .field input[type="url"],
@@ -182,16 +212,6 @@ h1, h2, h3 { font-family: var(--font-display), var(--font-mono), sans-serif; fon
   cursor: not-allowed;
 }
 .chip-check-disabled input { cursor: not-allowed; }
-
-.chip-check:has(input[type="checkbox"]:checked) {
-  border-color: var(--accent);
-  color: var(--fg);
-  box-shadow: 0 0 0 1px var(--accent);
-}
-
-.chip-check input[type="checkbox"] {
-  accent-color: var(--accent);
-}
 
 .term {
   background: color-mix(in srgb, var(--bg-2) 88%, black);

@@ -524,7 +524,7 @@ export default function JoinPage() {
                   borderColor: "var(--accent)",
                 }}
               >
-                <p className="tag">{domain} // domain_questions</p>
+                <p className="tag">{domain} questions, check out your roles and responsibilities using our terminal!</p>
                 <p
                   className="hint"
                   style={{
@@ -598,7 +598,7 @@ export default function JoinPage() {
           {/* Tech Domain Section */}
           {form.domains.includes("tech") && (
             <div className="card" style={{ margin: "0 0 1.5rem", padding: "1.1rem 1.2rem" }}>
-              <p className="tag">tech domain questions</p>
+              <p className="tag">tech domain questions, check out your roles and responsibilities our terminal!</p>
 
               <div className={`field ${errors.techCyberExperience ? "has-error" : ""}`} style={{ marginTop: "1rem" }}>
                 <label>Do you have any prior experience in cybersecurity?</label>
@@ -727,7 +727,7 @@ export default function JoinPage() {
 
               <div className={`field ${errors.techProject ? "has-error" : ""}`} style={{ marginBottom: 0 }}>
                 <label htmlFor="techProject">
-                  Share a project, hackathon, or coding challenge you've worked on that you're proud of.
+                  Share a project, hackathon, or coding challenge you've worked on that you're proud of. (Include a link with proper permissions if you have one!)
                 </label>
                 <textarea
                   id="techProject"
@@ -743,7 +743,7 @@ export default function JoinPage() {
           {/* Events Domain Section */}
           {form.domains.includes("events") && (
             <div className="card" style={{ margin: "0 0 1.5rem", padding: "1.1rem 1.2rem" }}>
-              <p className="tag">events domain questions</p>
+              <p className="tag">events domain questions, check out your roles and responsibilities using our terminal</p>
 
               <div className={`field ${errors.eventsWhyJoin ? "has-error" : ""}`} style={{ marginTop: "1rem" }}>
                 <label htmlFor="eventsWhyJoin">Why do you want to join the Events &amp; Ops team?</label>
