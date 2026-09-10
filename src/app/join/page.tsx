@@ -80,7 +80,7 @@ const DOMAIN_QUESTIONS = {
     {
       id: "mediaPortfolio",
       label:
-        "If you are a video editor please upload your portfolio or link to some cool edits you have made.",
+        "If you are a video editor please upload your portfolio or link to some cool edits you have made. (Please use proper permissions so that we actually see your portfolio!)",
       type: "text",
       required: false,
     },
