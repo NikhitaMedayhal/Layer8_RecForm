@@ -8,11 +8,54 @@ const MISSION = `layer8 exists because the human is always the weakest — and
 strongest — link in any system. we train people to think like
 attackers so they can build like defenders.`;
 
+// Roles & responsibilities for each domain, shown via `cat domains/<name>.txt`.
+const DOMAINS: Record<string, string[]> = {
+  tech: [
+    "Tech Domain — Roles & Responsibilities:",
+    "- Create CTF challenges",
+    "- Mentor other students on projects",
+    "- Build and maintain the club website",
+    "- Take care of all tech-related work for the club",
+    "- Run a weekly cybersecurity blog",
+  ],
+  marketing: [
+    "Marketing Domain — Roles & Responsibilities:",
+    "- Spread the word about the club across campus & WhatsApp groups",
+    "- Class to class marketing (if regs are low)",
+    "- Print and put up posters, QR codes, etc. around the college",
+    "- Work closely with the media team",
+  ],
+  design: [
+    "Design Domain — Roles & Responsibilities:",
+    "- Design logos, posters, stickers, insta posts, T-shirts, badges, and ID tags",
+    "- Collaborate with the media team on post designs",
+    "- Stick to deadlines (and be open to reworking designs until they're approved)",
+  ],
+  events: [
+    "Events & Operations Domain — Roles & Responsibilities:",
+    "- Come up with new event ideas, catchy names, and execution plans",
+    "- Get necessary permissions and coordinate with core team for budget",
+    "- Approach potential sponsors and manage sponsorships",
+  ],
+  media: [
+    "Media Domain — Roles & Responsibilities:",
+    "- Design engaging posts for socials",
+    "- Make reels",
+    "- Manage LinkedIn and Instagram handles",
+    "- Coordinate with marketing and assist them when needed",
+    "- extra -",
+    "  - Capture high-quality photos & videos during events",
+    "  - Edit videos and create creative edits",
+  ],
+};
+
+const DOMAIN_NAMES = Object.keys(DOMAINS); // ["tech", "marketing", "design", "events"]
+
 // The scripted sequence that types itself out when the page loads.
 const BOOT_SCRIPT: { cmd: string; output: string[] }[] = [
   { cmd: "whoami", output: ["a prospective member — run `apply` when you're ready"] },
   { cmd: "cat mission.txt", output: MISSION.split("\n") },
-  { cmd: "ls domains/", output: ["tech  marketing  design  events"] },
+  { cmd: "ls domains/", output: [DOMAIN_NAMES.join("  ")] },
 ];
 
 const TYPE_SPEED_MS = 30; // per character
@@ -34,25 +77,36 @@ function buildOutput(raw: string, onScrollToForm: () => void): string[] {
     case "help":
       return [
         "available commands:",
-        "help              show available commands",
-        "ls                list sections",
-        "whoami            identify the current user",
-        "cat mission.txt   print the layer8 mission",
-        "apply             jump to the application form",
-        "clear             clear terminal output",
+        "help                     show available commands",
+        "ls                       list sections",
+        "ls domains/              list domains",
+        "whoami                   identify the current user",
+        "cat mission.txt          print the layer8 mission",
+        `cat domains/<name>.txt   print a domain's roles (${DOMAIN_NAMES.join(", ")})`,
+        "apply                    jump to the application form",
+        "clear                    clear terminal output",
       ];
     case "ls":
       if (arg === "domains/" || arg === "domains") {
-        return ["tech  marketing  design  events"];
+        return [DOMAIN_NAMES.map((name) => `${name}.txt`).join("  ")];
       }
       return ["domains/   mission.txt   team/   apply"];
     case "whoami":
       return ["a prospective member — run `apply` when you're ready"];
     case "pwd":
       return ["~/layer8/join"];
-    case "cat":
+    case "cat": {
       if (arg === "mission.txt") return MISSION.split("\n");
-      return [`cat: ${arg || "(no file)"}: No such file`];
+
+      // Accept "cat domains/tech.txt", "cat domains/tech", or just "cat tech.txt"/"cat tech"
+      const match = arg.match(/^(?:domains\/)?([a-z]+)(?:\.txt)?$/i);
+      const domainKey = match ? match[1].toLowerCase() : "";
+      if (domainKey && DOMAINS[domainKey]) {
+        return DOMAINS[domainKey];
+      }
+
+      return [`cat: ${arg || "(no file)"}: No such file or directory`];
+    }
     case "apply":
       onScrollToForm();
       return ["opening application form..."];
@@ -187,7 +241,7 @@ export default function Terminal({ onScrollToForm }: { onScrollToForm: () => voi
         )}
       </div>
       <div style={{ padding: "0.5rem 1.2rem 0.8rem", fontSize: "0.7rem", color: "var(--fg-faint)" }}>
-        try: help · cat mission.txt · apply
+        try: help · cat mission.txt · cat domains/tech.txt · apply
       </div>
     </div>
   );
